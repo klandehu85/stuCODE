@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls import include
 
 from system.views_user import IndexView, LoginView, LogoutView
 
@@ -23,6 +24,7 @@ urlpatterns = [
     path('', IndexView.as_view(), name='index'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('system/', include('system.urls', namespace='system')),
 ]
 from django.conf import settings
 from django.urls import re_path
