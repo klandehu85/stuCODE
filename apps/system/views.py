@@ -8,3 +8,4 @@ from .mixin import LoginRequiredMixin
 
 class SystemView(LoginRequiredMixin, TemplateView):
     template_name = 'system/system_index.html'
+
