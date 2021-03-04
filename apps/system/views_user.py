@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from django.views.generic.base import View
 from django.http import HttpResponseRedirect
@@ -47,3 +48,100 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return HttpResponseRedirect(reverse('login'))
+
+import json
+
+from django.views.generic.base import TemplateView
+from django.shortcuts import HttpResponse
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserView(LoginRequiredMixin, TemplateView):
+    template_name = 'system/users/user.html'
+
+
+class UserListView(LoginRequiredMixin, View):
+    def get(self, request):
+        fields = ['id', 'name', 'gender', 'mobile', 'email', 'department__name', 'post', 'superior__name', 'is_active']
+        ret = dict(data=list(User.objects.values(*fields)))
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+import re
+
+from django.contrib.auth.hashers import make_password
+
+from .forms import UserCreateForm
+from .models import Structure, Role
+
+
+class UserCreateView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        users = User.objects.exclude(username='admin')
+        structures = Structure.objects.values()
+        roles = Role.objects.values()
+
+        ret = {
+            'users': users,
+            'structures': structures,
+            'roles': roles,
+        }
+        return render(request, 'system/users/user_create.html', ret)
+
+    def post(self, request):
+        user_create_form = UserCreateForm(request.POST)
+        if user_create_form.is_valid():
+            new_user = user_create_form.save(commit=False)
+            new_user.password = make_password(user_create_form.cleaned_data['password'])
+            new_user.save()
+            user_create_form.save_m2m()
+            ret = {'status': 'success'}
+        else:
+            pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+            errors = str(user_create_form.errors)
+            user_create_form_errors = re.findall(pattern, errors)
+            ret = {
+                'status': 'fail',
+                'user_create_form_errors': user_create_form_errors[0]
+            }
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
+
+class UserDetailView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        user = get_object_or_404(User, pk=int(request.GET['id']))
+        users = User.objects.exclude(Q(id=int(request.GET['id'])) | Q(username='admin'))
+        structures = Structure.objects.values()
+        roles = Role.objects.values()
+        user_roles = user.roles.values()
+        ret = {
+            'user': user,
+            'structures': structures,
+            'users': users,
+            'roles': roles,
+            'user_roles': user_roles
+        }
+        return render(request, 'system/users/user_detail.html', ret)
+
+
+from .forms import UserUpdateForm
+
+class UserUpdateView(LoginRequiredMixin, View):
+
+    def post(self, request):
+        if 'id' in request.POST and request.POST['id']:
+            user = get_object_or_404(User, pk=int(request.POST['id']))
+        else:
+            user = get_object_or_404(User, pk=int(request.user.id))
+        user_update_form = UserUpdateForm(request.POST, instance=user)
+        if user_update_form.is_valid():
+            user_update_form.save()
+            ret = {"status": "success"}
+        else:
+            ret = {"status": "fail", "message": user_update_form.errors}
+        return HttpResponse(json.dumps(ret), content_type="application/json")

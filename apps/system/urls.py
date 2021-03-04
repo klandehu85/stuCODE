@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import SystemView
 from . import views_structure
+from . import views_user
 
 app_name = 'system'
 
@@ -12,4 +13,9 @@ urlpatterns = [
     path('basic/structure/list/', views_structure.StructureListView.as_view(), name='basic-structure-list'),
     path('basic/structure/delete/', views_structure.StructureDeleteView.as_view(), name='basic-structure-delete'),
     path('basic/structure/add_user/', views_structure.Structure2UserView.as_view(), name='basic-structure-add_user'),
+    path('basic/user/', views_user.UserView.as_view(), name='basic-user'),
+    path('basic/user/list/', views_user.UserListView.as_view(), name='basic-user-list'),
+    path('basic/user/create/', views_user.UserCreateView.as_view(), name='basic-user-create'),
+    path('basic/user/detail/', views_user.UserDetailView.as_view(), name='basic-user-detail'),
+    path('basic/user/update/', views_user.UserUpdateView.as_view(), name='basic-user-update'),
 ]
