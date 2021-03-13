@@ -100,6 +100,10 @@
                 {
                     ajax: {
                         "url": "{% url 'system:basic-user-list' %}",
+                                            // 下面三行是新增加的内容，
+                        "data": function (d) {
+                            d.select = $("#select").val();
+                        }
                     },
                     columns: [
                         DATATABLES_CONSTANT.DATA_TABLES.COLUMN.CHECKBOX,
@@ -202,6 +206,194 @@
     });
     layer.full(div)
 }
+// 新增内容放到doUpdate()函数后面
+    function doChangepasswd(id) {
+    layer.open({
+        type: 2,
+        title: '修改密码',
+        shadeClose: false,
+        maxmin: true,
+        area: ['850px', '350px'],
+        content: ["{% url 'system:basic-user-password_change' %}" + '?id=' + id, 'no'],
+        end: function () {
+            oDataTable.ajax.reload();
+        }
+    });
+}
+
+// 以下代码添加到 doChangepasswd()函数后面
+
+//checkbox全选
+$("#checkAll").on("click", function () {
+    if ($(this).prop("checked") === true) {
+        $("input[name='checkList']").prop("checked", $(this).prop("checked"));
+        $('#example tbody tr').addClass('selected');
+    } else {
+        $("input[name='checkList']").prop("checked", false);
+        $('#example tbody tr').removeClass('selected');
+    }
+});
+
+//批量删除
+$("#btnDelete").click(function () {
+    if ($("input[name='checkList']:checked").length == 0) {
+        layer.msg("请选择要删除的记录");
+        return;
+    }
+
+    var arrId = new Array();
+    $("input[name='checkList']:checked").each(function () {
+        //alert($(this).val());
+        arrId.push($(this).val());
+    });
+
+    sId = arrId.join(',');
+
+    layer.alert('确定删除吗？', {
+        title: '提示'
+        , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+        , time: 0 //不自动关闭
+        , btn: ['YES', 'NO']
+        , yes: function (index) {
+            layer.close(index);
+            $.ajax({
+                type: "POST",
+                url: "{% url 'system:basic-user-delete' %}",
+                data: {"id": sId, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                cache: false,
+                success: function (msg) {
+                    if (msg.result) {
+                        layer.alert("操作成功");
+                        oDataTable.ajax.reload();
+                    } else {
+                        //alert(msg.message);
+                        layer.alert("操作失败");
+                    }
+                    return;
+                }
+            });
+        }
+    });
+});
+
+//批量启用
+$("#btnEnable").click(function () {
+    if ($("input[name='checkList']:checked").length == 0) {
+        layer.msg("请选择要启用的用户");
+        return;
+    }
+
+    var arrId = new Array();
+    $("input[name='checkList']:checked").each(function () {
+        //alert($(this).val());
+        arrId.push($(this).val());
+    });
+
+    sId = arrId.join(',');
+
+    layer.alert('确定启用吗？', {
+        title: '提示'
+        , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+        , time: 0 //不自动关闭
+        , btn: ['YES', 'NO']
+        , yes: function (index) {
+            layer.close(index);
+            $.ajax({
+                type: "POST",
+                url: "{% url 'system:basic-user-enable' %}",
+                data: {"id": sId, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                cache: false,
+                success: function (msg) {
+                    if (msg.result) {
+                        layer.alert("启用用户成功", {icon: 1});
+                        oDataTable.ajax.reload();
+                    } else {
+                        //alert(msg.message);
+                        layer.alert("启用用户失败", {icon: 5});
+                    }
+                    return;
+                }
+            });
+        }
+    });
+});
+
+//批量禁用
+$("#btnDisable").click(function () {
+    if ($("input[name='checkList']:checked").length == 0) {
+        layer.msg("请选择要禁用的用户");
+        return;
+    }
+
+    var arrId = new Array();
+    $("input[name='checkList']:checked").each(function () {
+        //alert($(this).val());
+        arrId.push($(this).val());
+    });
+
+    sId = arrId.join(',');
+
+    layer.alert('确定禁用吗？', {
+        title: '提示'
+        , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+        , time: 0 //不自动关闭
+        , btn: ['YES', 'NO']
+        , yes: function (index) {
+            layer.close(index);
+            $.ajax({
+                type: "POST",
+                url: "{% url 'system:basic-user-disable' %}",
+                data: {"id": sId, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                cache: false,
+                success: function (msg) {
+                    if (msg.result) {
+                        layer.alert("禁用用户成功", {icon: 1});
+                        oDataTable.ajax.reload();
+                    } else {
+                        //alert(msg.message);
+                        layer.alert("禁用用户失败", {icon: 5});
+                    }
+                    return;
+                }
+            });
+        }
+    });
+});
+
+//删除单个用户
+function doDelete(id) {
+    layer.alert('确定删除吗？', {
+        title: '提示'
+        , icon: 3 //0:感叹号 1：对号 2：差号 3：问号 4：小锁 5：哭脸 6：笑脸
+        , time: 0 //不自动关闭
+        , btn: ['YES', 'NO']
+        , yes: function (index) {
+            layer.close(index);
+            $.ajax({
+                type: "POST",
+                url: "{% url 'system:basic-user-delete' %}",
+                data: {"id": id, csrfmiddlewaretoken: '{{ csrf_token }}'},  //防止post数据时报 csrf_token 403
+                cache: false,
+                success: function (msg) {
+                    if (msg.result) {
+                        layer.alert('删除成功', {icon: 1});
+                        oDataTable.ajax.reload();
+                    } else {
+                        //alert(msg.message);
+                        layer.alert('删除失败', {icon: 5});
+                    }
+                    return;
+                }
+            });
+        }
+    });
+
+}
+
+$("#select").change(function () {
+    //alert($("#select").val())
+    oDataTable.ajax.reload();
+});
     </script>
 {% endblock %}
 

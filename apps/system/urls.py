@@ -3,6 +3,7 @@ from django.urls import path
 from .views import SystemView
 from . import views_structure
 from . import views_user
+from . import views_menu
 
 app_name = 'system'
 
@@ -18,4 +19,11 @@ urlpatterns = [
     path('basic/user/create/', views_user.UserCreateView.as_view(), name='basic-user-create'),
     path('basic/user/detail/', views_user.UserDetailView.as_view(), name='basic-user-detail'),
     path('basic/user/update/', views_user.UserUpdateView.as_view(), name='basic-user-update'),
+    path('basic/user/password_change/', views_user.PasswordChangeView.as_view(), name='basic-user-password_change'),
+    path('basic/user/delete/', views_user.UserDeleteView.as_view(), name='basic-user-delete'),
+    path('basic/user/enable/', views_user.UserEnableView.as_view(), name='basic-user-enable'),
+    path('basic/user/disable/', views_user.UserDisableView.as_view(), name='basic-user-disable'),
+
+    path('rbac/menu/', views_menu.MenuListView.as_view(), name='rbac-menu'),
+    path('rbac/menu/create/', views_menu.MenuCreateView.as_view(), name='rbac-menu-create'),
 ]
